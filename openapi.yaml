@@ -1,0 +1,556 @@
+openapi: 3.0.0
+info:
+  title: TomaETest
+  version: 1.0.0
+  contact: {}
+paths:
+  /exam/tsimport/insert:
+    summary: TomaETest Exam Methods
+    post:
+      summary: Exam Creation/Update
+      description: ''
+      parameters: []
+      operationId: /exam/tsimport/insert
+      responses:
+        '200':
+          description: >-
+            internal ID ,exam code, and protected header need to be taken from
+            "data"["ID"], "data"["Attributes"]["TETSebHeader"] and
+            "data"["Attributes"]["TETExamLink"]
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/tsImportResponse'
+      tags:
+        - Create/Update Exam
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/tsImportData'
+        description: >-
+          TETExamProctoringType - 'no' cannot be selected with others
+
+          
+
+
+          TETExamVerificationType - 'no' cannot be selected with others and any
+          combination of 'camera' 'password' and 'manual' cannot be chosen
+  /auth/login/SafeGenerateToken:
+    post:
+      summary: SSO to monitor the exam
+      description: >-
+        Generate SSO link to monitor the exam. If 'externalLocation' is
+        specified in request body, the link will take to specific page
+      parameters: []
+      operationId: /auth/login/SafeGenerateToken
+      responses:
+        '200':
+          description: 'the link for you to open the client from "data"["url"]'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/safeGenerateTokenResponse'
+      tags:
+        - SSO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/safeGenerateTokenData'
+        description: >-
+          externalLocation is optional, replace $id with examID and $parID with
+          participantID or remove this field
+  /participant/getByUserName/view:
+    post:
+      summary: Get the participant internal ID from external ID
+      description: ''
+      parameters: []
+      operationId: /participant/getByUserName/view
+      responses:
+        '200':
+          description: id is under "data"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getByUserNameResponse'
+      tags:
+        - Participant Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getByUserNameData'
+        description: will return the participant's internal ID
+  /exam/thirdPartySSOMoodle/view:
+    post:
+      summary: 'Get the SSO credentials for Participant '
+      description: ''
+      parameters: []
+      operationId: /exam/thirdPartySSOMoodle/view
+      responses:
+        '200':
+          description: >-
+            token is under "data"["token"] and participant id is under
+            "data"["parID"]
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/thirdPartySSOMoodleResponse'
+      tags:
+        - Participant Login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/thirdPartySSOMoodleData'
+        description: will return a token and ParID
+  /exam/participant/setSubmissionRequest/insert:
+    post:
+      summary: On submission send to TomaETest update
+      description: ''
+      parameters: []
+      operationId: /exam/participant/setSubmissionRequest/insert
+      responses:
+        '200':
+          description: Default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/setSubmissionRequestResponse'
+      tags:
+        - Submit
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/setSubmissionRequestData'
+        description: >-
+          When the user submits you will need to send an event to the TomaETest
+          system
+  /exam/CloseExam/edit:
+    post:
+      summary: Closing exam
+      description: ''
+      parameters:
+        - name: ID
+          in: query
+          required: true
+          schema:
+            type: string
+            default: '1234'
+          description: Exam ID
+        - name: force
+          in: query
+          required: true
+          schema:
+            type: string
+            default: 'true'
+          description: needs to be true
+      operationId: /exam/CloseExam/edit
+      responses:
+        '200':
+          description: Default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/closeExamResponse'
+      tags:
+        - Close
+security:
+  - tsImport-USERID: []
+  - tsImport-APIKEY: []
+servers:
+  - url: 'https://{institution}.tomaetest.com/TomaETest/api/dashboard/WS'
+    description: ''
+    variables:
+      institution:
+        description: institution that will be affected by the API calls
+        default: change-me
+components:
+  links: {}
+  callbacks: {}
+  schemas:
+    tsImportData:
+      type: object
+      properties:
+        examParameter:
+          type: object
+          properties:
+            TETExamDate:
+              example: d/m/Y
+              type: string
+            TETExamName:
+              type: string
+            TETExamCourse:
+              type: string
+            TETExamExternalID:
+              type: string
+              example: 1234
+            TETExamType:
+              type: string
+              example: open
+            TETTeacherExternalID:
+              type: string
+              example: 123456
+            Year:
+              type: integer
+              example: -1
+            Moed:
+              type: integer
+              example: -1
+            Semester:
+              type: integer
+              example: -1
+            TETExamQuestionNumberingType:
+              type: string
+              example: 1
+            TETExamQuestionAnswerNumberingType:
+              type: string
+              example: a
+            TETExam3rdPartyConfig:
+              type: object
+              properties:
+                QuizURL:
+                  type: string
+                  example: 'http://quizURL.com'
+                PassToTG:
+                  type: string
+                  example: scanning module
+            TETExamRecordingParticipantView:
+              type: boolean
+            TETExamUseUnlockParticipantPassword:
+              type: boolean
+            TETExamDuration:
+              type: integer
+              example: 1000000
+            TETOverallExamOverTime:
+              type: integer
+            TETExamLockComputer:
+              type: object
+              properties:
+                key:
+                  type: string
+                  enum:
+                    - full
+                    - semi
+                    - 'no'
+            TETExamStartTime:
+              example: '00:00'
+              type: string
+            TETExamAuthorizationType:
+              type: object
+              properties:
+                key:
+                  type: string
+                  example: saml
+            TETExamPasswordTrustNeeded:
+              type: object
+              properties:
+                key:
+                  type: string
+                  enum:
+                    - beforeExam
+                    - atExam
+                    - noVerification
+            TETExamEndDelay:
+              type: integer
+            TETExamProctoringType:
+              type: array
+              items:
+                anyOf:
+                  - type: object
+                    properties:
+                      key:
+                        type: string
+                        example: 'no'
+                  - type: object
+                    properties:
+                      key:
+                        type: string
+                        example: second_cam_proctoring
+                  - type: object
+                    properties:
+                      key:
+                        type: string
+                        example: computer_cam_proctoring
+                  - type: object
+                    properties:
+                      key:
+                        type: string
+                        example: monitor_recording_proctoring
+            TETExamVerificationType:
+              type: array
+              items:
+                anyOf:
+                  - type: object
+                    properties:
+                      key:
+                        type: string
+                        example: camera
+                  - type: object
+                    properties:
+                      key:
+                        type: string
+                        example: password
+                  - type: object
+                    properties:
+                      key:
+                        type: string
+                        example: manual
+                  - type: object
+                    properties:
+                      key:
+                        type: string
+                        example: room
+                  - type: object
+                    properties:
+                      key:
+                        type: string
+                        example: 'no'
+            TETExamAlertedApps:
+              type: array
+              items:
+                type: string
+                example: app name
+            TETExamDeniedApps:
+              type: array
+              items:
+                type: string
+                example: app name
+    room:
+      type: object
+      properties:
+        key:
+          type: string
+          example: room
+    manual:
+      type: object
+      properties:
+        key:
+          type: string
+          example: manual
+    password:
+      type: object
+      properties:
+        key:
+          type: string
+          example: password
+    camera:
+      type: object
+      properties:
+        key:
+          type: string
+          example: camera
+    monitor_recording_proctoring:
+      type: object
+      properties:
+        key:
+          type: string
+          example: monitor_recording_proctoring
+    computer_cam_proctoring:
+      type: object
+      properties:
+        key:
+          type: string
+          example: computer_cam_proctoring
+    second_cam_proctoring:
+      type: object
+      properties:
+        key:
+          type: string
+          example: second_cam_proctoring
+    'no':
+      type: object
+      properties:
+        key:
+          type: string
+          example: 'no'
+    tsImportResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            Active:
+              type: boolean
+            Attributes:
+              type: object
+              example: object containing the new / updated exam attributes
+            InsertDate:
+              type: string
+            UpdateDate:
+              type: string
+            InsertUserID:
+              type: string
+              example: 1
+            UpdateUserID:
+              type: string
+              example: 1
+            ID:
+              type: integer
+        Moment:
+          type: string
+          example: '2021-07-20T12:14:15.000000Z'
+        requestID:
+          type: string
+          example: 60f6be17730e17.30965163
+        success:
+          type: boolean
+        status:
+          type: string
+    safeGenerateTokenResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            url:
+              type: string
+        Moment:
+          type: string
+          example: '2021-07-20T12:14:15.000000Z'
+        requestID:
+          type: string
+          example: 60f6be17730e17.30965163
+        success:
+          type: boolean
+        status:
+          type: string
+    safeGenerateTokenData:
+      type: object
+      properties:
+        userExternalID:
+          type: string
+          example: 123456
+        examExternalID:
+          type: string
+          example: 1234
+        externalLocation:
+          type: string
+          example: exams/$id/proctoring/$parID
+          description: >-
+            this is optional, replace $id with examID and $parID with
+            participantID
+    getByUserNameData:
+      type: object
+      properties:
+        UserName:
+          type: integer
+          example: 1234
+    getByUserNameResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: integer
+        Moment:
+          type: string
+          example: '2021-07-20T12:14:15.000000Z'
+        requestID:
+          type: string
+          example: 60f6be17730e17.30965163
+        success:
+          type: boolean
+        status:
+          type: string
+    thirdPartySSOMoodleData:
+      type: object
+      properties:
+        examID:
+          type: string
+          example: 1234
+        parID:
+          type: string
+          example: 1234
+    thirdPartySSOMoodleResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+            parID:
+              type: string
+        Moment:
+          type: string
+          example: '2021-07-20T12:14:15.000000Z'
+        requestID:
+          type: string
+          example: 60f6be17730e17.30965163
+        success:
+          type: boolean
+        status:
+          type: string
+    setSubmissionRequestData:
+      type: object
+      properties:
+        ParID:
+          type: string
+          example: 1234
+        ExamID:
+          type: string
+          example: 1234
+    setSubmissionRequestResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: object
+        Moment:
+          type: string
+          example: '2021-07-20T12:14:15.000000Z'
+        requestID:
+          type: string
+          example: 60f6be17730e17.30965163
+        success:
+          type: boolean
+        status:
+          type: string
+    closeExamResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        data:
+          type: object
+        Moment:
+          type: string
+          example: '2021-07-20T12:14:15.000000Z'
+        requestID:
+          type: string
+          example: 60f6be17730e17.30965163
+        success:
+          type: boolean
+        status:
+          type: string
+  securitySchemes:
+    tsImport-APIKEY:
+      type: apiKey
+      name: X-APIKEY
+      in: header
+    tsImport-USERID:
+      type: apiKey
+      name: X-USERID
+      in: header
+tags:
+  - name: Create/Update Exam
+    description: ''
+  - name: SSO
+  - name: Participant Login
+  - name: Submit
+  - name: Close
